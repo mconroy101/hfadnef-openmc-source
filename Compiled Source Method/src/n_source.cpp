@@ -33,7 +33,7 @@ public:
   {
     openmc::SourceSite particle;
     // Set particle type to neutron
-    particle.particle = openmc::ParticleType::neutron;
+    particle.particle = openmc::ParticleType::neutron();
 
     // Uncomment/comment to optionally smear energy
 
@@ -48,7 +48,7 @@ public:
     particle.wgt = linInterp(yield_E, yield_N, EE);
     // Sample particle starting position in x-y plane (10 cm disk)
     openmc::PowerLaw r_dist(0, 5, 1);
-    double pos_r = r_dist.sample(seed);
+    double pos_r = r_dist.sample(seed).first;
     double pos_ang = 2.0 * M_PI * openmc::prn(seed);
     // Sample the position of iteraction in the x-y plane
     double x_pos = pos_r * std::cos(pos_ang); // r_dist.sample(seed);
@@ -101,8 +101,8 @@ public:
     // Set neutron position
     // y: -42 cm for beam y offset from model origin
     // z: Need to convert z_pos from mm to cm
-    // z: And -0.01 offset since lithium target is centred at z=0
-    particle.r = {x_pos, y_pos - 42, z_pos / 10 - 0.01};
+    // z: And -4.51 offset to account for model position
+    particle.r = {x_pos, y_pos, z_pos / 10 - 4.51};
     // particle.r = {0., -42., 0.}; // Alternative to use point source starting location
     return particle;
   }
