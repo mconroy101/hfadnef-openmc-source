@@ -13,8 +13,12 @@ Author: Max Conroy (m.j.conroy@pgr.bham.ac.uk)
 #include "openmc/particle.h"
 #include "spline.h"
 
-// EDIT THIS TO CHANGE WHERE THE CROSS SECTION DATA ARE STORED
-std::string FilePath = "/home/ADF/mjc970/Documents/High Flux Neutron Source/SOURCE_FILES/Compiled Source Method/src/";
+#ifndef DATA_FILE_PATH
+#define DATA_FILE_PATH "src/"
+#endif
+
+// Let CMake define where the data are stored
+std::string FilePath = DATA_FILE_PATH;
 
 class CompiledSource : public openmc::Source
 {
@@ -35,15 +39,13 @@ public:
     // Set particle type to neutron
     particle.particle = openmc::ParticleType::neutron();
 
-    // Uncomment/comment to optionally smear energy
-
-    // // Define a normal distribution to sample from
+    // // Uncomment/comment to optionally smear energy
     // double E_sigma = 0.0075; // 1.2 keV --> MeV
     // openmc::Normal E_dist(Ep_, E_sigma);
-    // // Then sample from it
-    // double EE = E_dist.sample(seed);
+    // double EE = E_dist.sample(seed).first;
 
     double EE = Ep_; // Uncomment if smearing is to be turned off
+    
     // Interpolate strength of source (per mC) for input proton energy
     particle.wgt = linInterp(yield_E, yield_N, EE);
     // Sample particle starting position in x-y plane (10 cm disk)
@@ -93,17 +95,13 @@ public:
     particle.E = energy * 1E6;
     // Set neutron direction
     particle.u = {std::sin(thetaLab) * std::cos(phiLab), std::sin(thetaLab) * std::sin(phiLab), std::cos(thetaLab)};
-    // Set mutex to prevent cout from being accessed by multiple processes simultaneously
-    // static std::mutex lock;
-    // std::lock_guard guard{ lock };
-    // std::cout << thetaLab*180/M_PI << std::endl; // Output cos(theta) for logging
 
     // Set neutron position
     // y: -42 cm for beam y offset from model origin
     // z: Need to convert z_pos from mm to cm
     // z: And -4.51 offset to account for model position
     particle.r = {x_pos, y_pos, z_pos / 10 - 4.51};
-    // particle.r = {0., -42., 0.}; // Alternative to use point source starting location
+    // particle.r = {0., 0., 0.}; // Alternative to use point source starting location
     return particle;
   }
 
@@ -148,7 +146,6 @@ private:
   {
     std::cout << " Reading data for compiled source..." << std::endl;
     // Load total XS_t data
-    // std::ifstream file0("/home/ADF/mjc970/Documents/High Flux Neutron Source/Python Module/hfadnef/hfadnef/src/XS_t_endf.txt");
     std::ifstream file0(FilePath + "XS_t_ideal.txt"); // XS_t_ideal.txt" l&p_xs
     if (!file0.is_open())
     {
@@ -159,7 +156,6 @@ private:
     double value1, value2, value3, value4;
     while (file0 >> value1 >> value2)
     {
-      // std::cout << "XS_t" << Ep_ << std::endl;
       XS_t_x.push_back(value1);
       XS_t_y.push_back(value2);
     }
@@ -175,7 +171,6 @@ private:
     }
     while (file1 >> value1 >> value2)
     {
-      // std::cout << "XS_0" << Ep_ << std::endl;
       XS_0_x.push_back(value1);
       XS_0_y.push_back(value2);
     }
@@ -190,7 +185,6 @@ private:
     }
     while (file2 >> value1 >> value2)
     {
-      // std::cout << "XS_1" << Ep_ << std::endl;
       XS_1_x.push_back(value1);
       XS_1_y.push_back(value2);
     }
@@ -205,7 +199,6 @@ private:
     }
     while (file3 >> value1 >> value2 >> value3 >> value4)
     {
-      // std::cout << "1: " << value1 << "2: " << value2 << "3: " << value3 << "4: " << value4 << std::endl;
       XS_ang0_E.push_back(value1);
       XS_ang0_A0.push_back(value2);
       XS_ang0_A1.push_back(value3);
@@ -251,7 +244,6 @@ private:
 
   void setMaxDepth()
   {
-    // std::cout << "Setting maximum depth" << std::endl;
     // Coefficients for linear fit to negative inverse stopping power
     const double m = -0.00512339;
     const double c = -0.00328388;
@@ -268,10 +260,8 @@ private:
     }
 
     // Check if x is within the range of x values
-
     if (x < x_values.front() || x > x_values.back())
     {
-      // std::cout << x << " " << x_values.front()<< " " << x_values.back() << std::endl;
       throw std::out_of_range("Input x value is outside the range of x values");
     }
     // Find the interval where x lies
@@ -395,14 +385,8 @@ private:
       // Since we only have two data points for these, we linearly interpolate
       if (*excited == true)
       {
-        // static std::mutex lock;
-        // std::lock_guard guard{ lock };
-        // std::cout << "Sampled angle" << std::endl; // Output cos(theta) for logging
         if (Ep >= 2.5)
         {
-          // static std::mutex lock;
-          // std::lock_guard guard{ lock };
-          // std::cout << "linterp" << std::endl; // Output cos(theta) for logging
           A[0] = linInterp(XS_ang1_E, XS_ang1_A0, Ep);
           A[1] = linInterp(XS_ang1_E, XS_ang1_A1, Ep);
           A[2] = linInterp(XS_ang1_E, XS_ang1_A2, Ep);
@@ -410,9 +394,6 @@ private:
         // Where we have no data, assume isotropic
         else
         {
-          // static std::mutex lock;
-          // std::lock_guard guard{ lock };
-          // std::cout << "isotropic" << std::endl; // Output cos(theta) for logging
           A[0] = 1.;
           A[1] = 0.;
           A[2] = 0.;
@@ -475,11 +456,9 @@ private:
     }
     // Now, complete kinematics
     // We can compute the ratio of the velocities of the CM and of the neutron (vCM/vn)
-    // double gamma = std::sqrt(((mp*mn)/(mBe*mLi))*(Ep/(Ep+(Q-Ex)*(1.+mp/mLi)))); //  Calculate gamma for the conversion to lab COM
     double gamma = std::sqrt((mp * mn * Ep * (mn + mBe)) / (mBe * (mp + mLi) * (mp + mLi) * ((Q - Ex) + Ep * (mLi / (mp + mLi))))); // Correct gamma without assumption (mLi + mp = mBe + mn)
     // And use this in the angle conversion formula
     double theta = std::atan2((std::sin(thetaCM)), (std::cos(thetaCM) + gamma));
-    // std::cout << "Calculated theta lab: " << theta << std::endl; // Output cos(theta) for logging
     return theta;
   }
 
@@ -490,15 +469,12 @@ private:
     double Ex = 0.0;
     if (*excited == true)
     {
-      // std::cout << "Exciting..." << std::endl;
       Ex = 0.429;
     }
     // Compute centre of mass energy
     double ECM = mLi * Ep / (mLi + mp) + Q - Ex;
-    // std::cout << "ECM: " << ECM << std::endl;
     if (ECM < 0)
     {
-      // std::cout << "Below threshold! Something is wrong!" << std::endl;
       return 0;
     }
     // Calculate neutron total momentum
