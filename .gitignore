@@ -9,3 +9,5 @@
 *.pdf
 *.png
 New Compiled Method/*
+*(Legacy)/*
+Input Card Method/*
