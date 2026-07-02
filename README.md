@@ -1,7 +1,8 @@
 # A neutron source term for OpenMC simulations of the UoB High-Flux Accelerator-Driven Neutron Facility (HF-ADNeF)
 **Author:** Max Conroy
 
-
+> **Paper in progress: please cite this repository appropriately for now, if you use this in your work.
+> E.g. `Conroy, M. (2025). HF-ADNeF Model for OpenMC (Version 0.1.0) [Computer software]. https://github.com/bhamnuclear/hfadnef-openmc-geometry`.**
 
 > [!IMPORTANT]
 >This source term has been designed to be used with the HF-ADNeF target-room geometry available on the [UoB Nuclear Group github](https://github.com/bhamnuclear/hfadnef-openmc-geometry). As such, neutrons are initialised at $z=-4.51$ cm, and on a 5 cm radius disc in $x,y$. The code can be edited to produce different positional distributions, for example a point source.
@@ -46,7 +47,6 @@ If you wish to add some spread to the energy of the incident proton beam, you wi
 
 **See the Jupyter notebook in the examples folder for a simple use case.**
 
-> [!TIP]
 > If you use this code in your work, please reference it accordingly. I will be writing this up as part of my PhD and will update this github when that happens. Please contact me for more information at m.j.conroy@pgr.bham.ac.uk.
 
 ### References:
