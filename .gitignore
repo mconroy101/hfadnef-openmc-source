@@ -2,3 +2,10 @@
 *.xml
 *.out
 **/build
+**/.vscode/*
+*/build/*
+*/examples/*
+*/py_testing/*
+*.pdf
+*.png
+New Compiled Method/*
