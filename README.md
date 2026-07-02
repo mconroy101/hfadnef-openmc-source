@@ -49,6 +49,9 @@ If you wish to add some spread to the energy of the incident proton beam, you wi
 
 > If you use this code in your work, please reference it accordingly. I will be writing this up as part of my PhD and will update this github when that happens. Please contact me for more information at m.j.conroy@pgr.bham.ac.uk.
 
+### Legacy code
+If you are using the *legacy* version of the geometry, which is centered at y = -42 cm and has the lithium layer located at z = 0, you will need to use an older version of this code, available on the [legacy branch](../../tree/legacy). 
+
 ### References:
 [^1]: C. L. Lee and X. L. Zhou. “Thick target neutron yields for the 7Li(p,n)7Be reaction near threshold”. In: Nuclear Instruments and Methods in Physics Research Section B: Beam Interactions with Materials and Atoms 152.1 (Apr. 1999), pp. 1–11. issn: 0168-583X. doi: 10.1016/S0168-583X(99)00026-9.
 [^2]: Horst Liskien and Arno Paulsen. “Neutron production cross sections and energies for the reactions 7Li(p,n)7Be and 7Li(p,n)7Be*”. In: Atomic Data and Nuclear Data Tables 15.1 (Jan. 1975), pp. 57–84. issn: 0092-640X. doi: 10.1016/0092-640X(75)90004-2.
