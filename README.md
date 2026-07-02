@@ -1,33 +1,54 @@
-# UOB High Flux Neutron Facility
+# A neutron source term for OpenMC simulations of the UoB High-Flux Accelerator-Driven Neutron Facility (HF-ADNeF)
 **Author:** Max Conroy
 
-This respository contains the starting neutron source files for use in OpenMC simulations of HF-ADNeF at the University of Birmingham.
 
-### Input Card Method
-These files are based off of MCNP input cards, where a C++ file is written for various incident proton energies.
 
-### Compiled Source Method
-This is a single C++ file that takes a proton energy as an input and samples initial neutron parameters from physical principles.
-_Currently a work in progress._
+> [!IMPORTANT]
+>This source term has been designed to be used with the HF-ADNeF target-room geometry available on the [UoB Nuclear Group github](https://github.com/bhamnuclear/hfadnef-openmc-geometry). As such, neutrons are initialised at $z=-4.51$ cm, and on a 5 cm radius disc in $x,y$. The code can be edited to produce different positional distributions, for example a point source.
+
+
+### Overview
+This respository contains the code for a [Parameterised Compiled Source](https://docs.openmc.org/en/latest/usersguide/settings.html) for use in OpenMC simulations of HF-ADNeF at the University of Birmingham. The source generates neutrons produced via the $^7Li(p,n)$ reaction via a Monte Carlo method. This code can be used as a starting source term for neutrons produced via the <sup>7</sup>Li(p,n)<sup>7</sup>Be reaction, which is the production method at HF-ADneF.
+
+For full details of how the code works, please see *paper in progress*.
+
+In brief:
+- Neutrons are produced uniformly in x and y over a 5-cm-radius disk, centred at x = 0, y = 0.
+- The z position of the neutron production depends on energy loss calculated from SRIM and the total cross section of the interaction. Near threshold, this uses the description given by Lee and Zhou [^1] and above this energy, experimental data from EXFOR are used.
+- The emission vector of the neutrons is sampled from the differential cross section data given by Liskien and Paulsen [^2].
+- The neutrons are given a weight such that tally results are per mC of proton current.
 
 ### Installation
-OpenMC will need to be installed on your system. This can be done via the instructions given here: https://docs.openmc.org/en/latest/quickinstall.html. I have manually built OpenMC from source using cmake.
+OpenMC will need to be installed on your system. This can be done via the instructions given here: https://docs.openmc.org/en/latest/quickinstall.html. I have found it most reliabl to manually build OpenMC from source using CMake.
 
-You will also need to download the required cross section data for OpenMC, which can be found here: https://openmc.org/official-data-libraries/. The path to the cross_sections.xml file will need to be added to the PATH variable, which can be done by adding
-```
-export OPENMC_CROSS_SECTIONS="/home/<path_to_cross_section_data>/cross_sections.xml"
-```
-to your bashrc file.
+With OpenMC installed the CompiledSource can now be compiled agains it. The /src folder contains the .cpp file which samples neutron starting conditions from physical principles and experimentally measured data, which are stored in /src/data.
 
-To use the custom source files, they will need to be built with cmake as well. Specific instructions can be found in the relevant folders.
+To use the code, first compile it via:
 
-#### Optional:
-If you are using the `openmc.deplete` module, then you will also need to download the depletion chain data. This can be found at https://openmc.org/depletion-chains/ or alternatively, you can use the `openmc_data` Python package, available at https://github.com/openmc-data-storage/openmc_data.
-You will then need to add the depletion chain data to your PATH by adding
-```
-export OPENMC_CHAIN_FILE="/home/<path_to_depletion_chain>/chain_data.xml"
-```
-to your bashrc file.
+```cmake -S src -B build```
 
-### Usage
-If you use this code in your work, please reference it accordingly. I will be writing this up as part of my PhD and will update this github when that happens. Please contact me for more information at m.j.conroy@pgr.bham.ac.uk.
+Then:
+
+```cmake --build build```
+
+For more information on using compiled sources, see the OpenMC documentation: https://docs.openmc.org/en/stable/usersguide/settings.html.
+
+### Usage:
+You can then use the libsource.so file as a compiled starting source in an OpenMC simulation. 
+
+A ```CompiledSource``` can be initialised with the following line:
+```
+settings.source = openmc.CompiledSource('<path_to_source>/build/libsource.so', Ep)
+```
+The parameter `Ep` is the energy of the proton beam, which should be passed as a string. The maximum energy that can be used is Ep = 2.6 MeV.
+
+If you wish to add some spread to the energy of the incident proton beam, you will need to edit the `n_source.cpp` file. Simply uncomment/comment the relevant sections within the main sampling loop and re-compile.
+
+**See the Jupyter notebook in the examples folder for a simple use case.**
+
+> [!TIP]
+> If you use this code in your work, please reference it accordingly. I will be writing this up as part of my PhD and will update this github when that happens. Please contact me for more information at m.j.conroy@pgr.bham.ac.uk.
+
+### References:
+[^1]: C. L. Lee and X. L. Zhou. “Thick target neutron yields for the 7Li(p,n)7Be reaction near threshold”. In: Nuclear Instruments and Methods in Physics Research Section B: Beam Interactions with Materials and Atoms 152.1 (Apr. 1999), pp. 1–11. issn: 0168-583X. doi: 10.1016/S0168-583X(99)00026-9.
+[^2]: Horst Liskien and Arno Paulsen. “Neutron production cross sections and energies for the reactions 7Li(p,n)7Be and 7Li(p,n)7Be*”. In: Atomic Data and Nuclear Data Tables 15.1 (Jan. 1975), pp. 57–84. issn: 0092-640X. doi: 10.1016/0092-640X(75)90004-2.
